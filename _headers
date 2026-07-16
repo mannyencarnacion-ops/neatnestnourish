@@ -5,11 +5,23 @@
   Permissions-Policy: geolocation=(), microphone=(), camera=(), interest-cohort=()
   Strict-Transport-Security: max-age=31536000; includeSubDomains
 
+# Images carry a content hash in the filename (logo.<hash>.png), so the URL
+# changes whenever the bytes do. Immutable is safe ONLY because of that.
+# If you ever drop the hash, drop immutable too — otherwise clients pin to a
+# stale asset for a year. (This bit us on 2026-07-16.)
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
 
+# CSS/JS are NOT hashed, so they must revalidate. ETag makes this a cheap 304
+# and guarantees a push is visible immediately instead of up to an hour later.
 /styles.css
-  Cache-Control: public, max-age=3600
+  Cache-Control: public, max-age=0, must-revalidate
 
 /site.js
-  Cache-Control: public, max-age=3600
+  Cache-Control: public, max-age=0, must-revalidate
+
+/
+  Cache-Control: public, max-age=0, must-revalidate
+
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
