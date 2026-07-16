@@ -255,7 +255,14 @@ a{color:inherit}
    ───────────────────────────────────────────── */
 .hero{
   position:relative;
-  padding:clamp(72px,10vw,116px) 0 clamp(72px,10vw,116px);
+  /* The header is position:sticky, so it lives in flow ABOVE the hero. Pull the
+     hero up by the header's height and pay it back as padding — now the dark
+     ground runs to the top of the page and the transparent header actually sits
+     over the hero instead of over the cream body. Without this, a transparent
+     header reveals the body background (cream) and the light nav type becomes
+     cream-on-cream. */
+  margin-top:calc(-1 * var(--header-h));
+  padding:calc(var(--header-h) + clamp(72px,10vw,116px)) 0 clamp(72px,10vw,116px);
   background:
     radial-gradient(1100px 620px at 78% 18%, #2a3320 0%, transparent 60%),
     radial-gradient(900px 560px at 12% 92%, #232b1b 0%, transparent 62%),
