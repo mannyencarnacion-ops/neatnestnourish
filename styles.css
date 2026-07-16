@@ -230,31 +230,108 @@ a{color:inherit}
   .brand-name{font-size:17px}
 }
 
-/* ── Hero ────────────────────────────────────── */
+/* ── Hero ─────────────────────────────────────
+   Dark ground is load-bearing, not a mood choice: the logo disc is cream and
+   the site is cream. On a light hero the mark merged into the background.
+   ───────────────────────────────────────────── */
 .hero{
   position:relative;
-  padding:clamp(80px,13vw,150px) 0 clamp(64px,9vw,104px);
-  background-image:radial-gradient(1200px 600px at 50% -10%,#fffdf6 0%,var(--paper) 55%,#f0ebdd 100%);
+  padding:clamp(72px,10vw,116px) 0 clamp(72px,10vw,116px);
+  background:
+    radial-gradient(1100px 620px at 78% 18%, #2a3320 0%, transparent 60%),
+    radial-gradient(900px 560px at 12% 92%, #232b1b 0%, transparent 62%),
+    linear-gradient(168deg, var(--forest) 0%, var(--forest-deep) 100%);
+  color:var(--ivory);
   overflow:hidden;
+  isolation:isolate;
 }
-.hero-inner{position:relative;z-index:2;max-width:940px;text-align:center;margin-inline:auto}
-.hero-title{margin-bottom:26px}
+
+/* Drifting ambient blobs — brand gold + sage, heavily blurred, very low alpha. */
+.hero-blobs{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.blob{
+  position:absolute;
+  border-radius:50%;
+  filter:blur(70px);
+  opacity:.30;
+  will-change:transform;
+}
+.b1{width:38vw;height:38vw;min-width:300px;min-height:300px;top:-8%;left:-6%;background:radial-gradient(closest-side,var(--gold),transparent 70%);animation:drift-a 24s ease-in-out infinite}
+.b2{width:32vw;height:32vw;min-width:260px;min-height:260px;bottom:-12%;right:-4%;background:radial-gradient(closest-side,#5c6b47,transparent 70%);animation:drift-b 29s ease-in-out infinite}
+.b3{width:26vw;height:26vw;min-width:220px;min-height:220px;top:38%;left:44%;background:radial-gradient(closest-side,var(--gold-dark),transparent 70%);opacity:.20;animation:drift-c 34s ease-in-out infinite}
+
+@keyframes drift-a{50%{transform:translate(5vw,4vw) scale(1.12)}}
+@keyframes drift-b{50%{transform:translate(-6vw,-5vw) scale(1.16)}}
+@keyframes drift-c{50%{transform:translate(4vw,-5vw) scale(1.09)}}
+
+.hero-inner{
+  position:relative;z-index:2;
+  display:grid;
+  grid-template-columns:1.05fr .95fr;
+  gap:clamp(32px,5vw,72px);
+  align-items:center;
+}
+.hero-copy{min-width:0}
+.hero .eyebrow{color:var(--gold)}
+.hero-title{margin-bottom:24px;color:var(--cream)}
 .hero-lede{
-  max-width:62ch;margin:0 auto 38px;
-  font-size:clamp(15.5px,1.5vw,17.5px);
-  color:#3b4232;
+  max-width:52ch;margin:0 0 34px;
+  font-size:clamp(15.5px,1.4vw,17px);
+  color:var(--ivory-dim);
   line-height:1.75;
 }
-.hero-actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:34px}
-.hero-note{font-size:13px;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
-.hero-note a{color:var(--gold-dark);text-underline-offset:3px}
+.hero-actions{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:30px}
+.hero .btn-primary{--btn-bg:var(--gold);--btn-fg:var(--forest-deep);--btn-bd:var(--gold)}
+.hero .btn-primary:hover{--btn-bg:var(--gold-pale);--btn-bd:var(--gold-pale)}
+.hero .btn-ghost{--btn-fg:var(--cream);--btn-bd:rgba(233,223,198,.42)}
+.hero .btn-ghost:hover{--btn-bd:var(--gold);--btn-bg:rgba(194,161,102,.14)}
+.hero-note{font-size:13px;color:var(--ivory-dim);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hero-note a{color:var(--gold);text-underline-offset:3px}
 
-.hero-glow{
-  position:absolute;inset:auto 50% -240px auto;
-  transform:translateX(50%);
-  width:min(780px,120vw);height:420px;
-  background:radial-gradient(closest-side,rgba(194,161,102,.16),transparent 72%);
+/* ── Hero logo: the breathing mark ─────────── */
+.hero-art{
+  position:relative;
+  display:grid;place-items:center;
+  min-width:0;
+}
+.hero-halo{
+  position:absolute;
+  width:118%;aspect-ratio:1;
+  border-radius:50%;
+  background:radial-gradient(closest-side,rgba(194,161,102,.30),rgba(194,161,102,.07) 62%,transparent 74%);
+  animation:halo 5.2s ease-in-out infinite;
+  will-change:transform,opacity;
   pointer-events:none;
+}
+.logo-hero{
+  position:relative;
+  width:min(380px,72vw);   /* source art is 444px native — do not scale past it */
+  height:auto;
+  border-radius:50%;
+  filter:drop-shadow(0 26px 40px rgba(0,0,0,.42));
+  animation:breathe 5.2s ease-in-out infinite;
+  will-change:transform;
+}
+
+@keyframes breathe{
+  0%,100%{transform:translateY(0) scale(1)}
+  50%    {transform:translateY(-9px) scale(1.028)}
+}
+@keyframes halo{
+  0%,100%{transform:scale(.97);opacity:.75}
+  50%    {transform:scale(1.05);opacity:1}
+}
+
+@media (max-width:900px){
+  .hero-inner{grid-template-columns:1fr;text-align:center}
+  .hero-lede{margin-inline:auto}
+  .hero-actions,.hero-note{justify-content:center}
+  .hero-art{grid-row:1;margin-bottom:8px}
+  .logo-hero{width:min(280px,62vw)}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .blob{animation:none}
+  .logo-hero,.hero-halo{animation:none}
 }
 
 /* ── Ribbon ──────────────────────────────────── */
