@@ -38,12 +38,22 @@
      Sticky header shadow
      ========================================================== */
   var header = $('.site-header');
+  var hasDarkHero = !!$('.hero');
+  var menuOpen = false;
+
+  /* The header sits on the dark hero at the top (transparent, light type) and
+     becomes the cream bar once scrolled. An open mobile menu always forces the
+     solid state so the dropdown has a ground to sit on. */
+  var syncHeader = function () {
+    if (!header) return;
+    var scrolled = window.scrollY > 8;
+    header.classList.toggle('is-stuck', scrolled);
+    header.classList.toggle('is-clear', hasDarkHero && !scrolled && !menuOpen);
+  };
   if (header) {
-    var onScroll = function () {
-      header.classList.toggle('is-stuck', window.scrollY > 8);
-    };
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
+    syncHeader();
+    window.addEventListener('scroll', syncHeader, { passive: true });
+    window.addEventListener('resize', syncHeader, { passive: true });
   }
 
   /* ==========================================================
@@ -53,9 +63,11 @@
   var mobileNav = $('#mobile-nav');
   if (toggle && mobileNav) {
     var setMenu = function (open) {
+      menuOpen = open;
       toggle.setAttribute('aria-expanded', String(open));
       toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
       mobileNav.hidden = !open;
+      syncHeader();
     };
     toggle.addEventListener('click', function () {
       setMenu(toggle.getAttribute('aria-expanded') !== 'true');
