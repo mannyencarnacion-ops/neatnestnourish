@@ -162,10 +162,12 @@ a{color:inherit}
   background:rgba(247,244,236,.82);
   backdrop-filter:saturate(160%) blur(14px);
   -webkit-backdrop-filter:saturate(160%) blur(14px);
-  border-bottom:1px solid transparent;
-  transition:border-color .3s var(--ease),background-color .3s var(--ease),color .3s var(--ease);
+  /* box-shadow, not border-bottom: a border would add 1px to the header's box and
+     the hero's -{--header-h} margin would leave a 1px cream sliver at the top. */
+  box-shadow:0 1px 0 transparent;
+  transition:box-shadow .3s var(--ease),background-color .3s var(--ease),color .3s var(--ease);
 }
-.site-header.is-stuck{border-bottom-color:var(--line);background:rgba(247,244,236,.94)}
+.site-header.is-stuck{box-shadow:0 1px 0 var(--line);background:rgba(247,244,236,.94)}
 
 /* At the very top the header floats over the dark hero — go transparent and
    invert the type. `.is-stuck` (scrollY > 8) restores the cream bar.
