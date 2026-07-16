@@ -7,20 +7,29 @@
   'use strict';
 
   /* ==========================================================
-     CONFIG — the only thing that needs filling in.
+     CONFIG
      ----------------------------------------------------------
-     ACCESS_KEY: the Web3Forms access key. The Shopify build
-     already used Web3Forms; reuse that same key so DJ's inbox
-     doesn't change. Find it in the old theme at
-     assets/nnn-theme.js (search "access_key"), or generate a
-     fresh one free at https://web3forms.com using DJ's email.
+     FormSubmit — no account, no API key, no secrets in this file.
+     Leads go to contact@neatnestnourish.com (DJ's address on her own
+     domain; it is the Shopify store's account email as of 2026-06-25).
 
-     Until this is filled in, both forms refuse to submit and
-     tell the visitor to call instead — they never silently fail.
+     ACTIVATION — read this before assuming the form works:
+     FormSubmit rejects every submission until the endpoint is activated,
+     and activation is only triggered BY THE FIRST REAL POST. Deploying is
+     not enough. The first submit causes FormSubmit to email
+     contact@neatnestnourish.com an activation link that must be clicked.
+     Until that happens the endpoint answers:
+         {"success":"false","message":"This form needs Activation."}
+     This exact trap silently ate ShopMora's own leads for two days
+     (2026-07-14 → 07-16). So NOT_ACTIVATED is handled explicitly below and
+     shows the visitor the phone number — it must never look like a success.
+
+     DNS WARNING: contact@neatnestnourish.com lives on neatnestnourish.com.
+     When the domain is cut over to Cloudflare, the MX records MUST be
+     carried across or this mailbox dies and every lead vanishes.
      ========================================================== */
   var CONFIG = {
-    ACCESS_KEY: '',                                   // <-- PASTE WEB3FORMS ACCESS KEY
-    ENDPOINT: 'https://api.web3forms.com/submit',
+    ENDPOINT: 'https://formsubmit.co/ajax/contact@neatnestnourish.com',
     PHONE_DISPLAY: '774·234·7307',
     PHONE_HREF: '+17742347307'
   };
@@ -212,12 +221,10 @@
     btn.textContent = labelWhenBusy;
   };
 
-  /* Posts to Web3Forms. Returns a promise that resolves true on success. */
+  /* Posts to FormSubmit. Resolves true only on a genuine success. */
   var send = function (payload) {
-    if (!CONFIG.ACCESS_KEY) {
-      return Promise.reject(new Error('NOT_CONFIGURED'));
-    }
-    payload.access_key = CONFIG.ACCESS_KEY;
+    payload._captcha = 'false';
+    payload._template = 'table';
     return fetch(CONFIG.ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
@@ -225,8 +232,12 @@
     })
       .then(function (r) { return r.json(); })
       .then(function (data) {
-        if (!data || data.success !== true) throw new Error(data && data.message ? data.message : 'SEND_FAILED');
-        return true;
+        // FormSubmit returns success as the STRING "true"/"false", not a boolean.
+        var ok = data && (data.success === true || data.success === 'true');
+        if (ok) return true;
+        var msg = (data && data.message) || 'SEND_FAILED';
+        if (/activat/i.test(msg)) throw new Error('NOT_ACTIVATED');
+        throw new Error(msg);
       });
   };
 
@@ -418,7 +429,7 @@
         var status = $('#estStatus');
         var btn = $('#estSubmit');
 
-        if (estForm.querySelector('[name="_gotcha"]').value) return;   // bot
+        if (estForm.querySelector('[name="_honey"]').value) return;   // bot
 
         var problems = validate(estForm);
         if (problems.length) {
@@ -434,8 +445,8 @@
         setStatus(status, '');
 
         send({
-          subject: 'New estimate request — ' + $('#ef-name').value.trim() + ' (' + answers.service.value + ')',
-          from_name: 'Neat Nest & Nourish website',
+          _subject: 'New estimate request — ' + $('#ef-name').value.trim() + ' (' + answers.service.value + ')',
+          _autoresponse: 'Thank you for your interest in Neat Nest & Nourish. We have your estimate request and will reply personally, usually within one business day. For anything urgent, call or text 774-234-7307.',
           name: $('#ef-name').value.trim(),
           email: $('#ef-email').value.trim(),
           phone: $('#ef-phone').value.trim() || '—',
@@ -462,8 +473,8 @@
           })
           .catch(function (err) {
             busy(btn, false);
-            if (err.message === 'NOT_CONFIGURED') {
-              setStatus(status, 'This form is not connected yet. Please call or text ' + CONFIG.PHONE_DISPLAY + '.', 'is-err');
+            if (err.message === 'NOT_ACTIVATED') {
+              setStatus(status, 'We could not send that just now. Please call or text ' + CONFIG.PHONE_DISPLAY + ' and we will take care of you.', 'is-err');
             } else {
               setStatus(status, FALLBACK_MSG, 'is-err');
             }
@@ -487,7 +498,7 @@
       var status = $('#revStatus');
       var btn = $('#revSubmit');
 
-      if (revForm.querySelector('[name="_gotcha"]').value) return;   // bot
+      if (revForm.querySelector('[name="_honey"]').value) return;   // bot
 
       var problems = validate(revForm);
 
@@ -510,8 +521,7 @@
       setStatus(status, '');
 
       send({
-        subject: 'New review (' + rating.value + '★) — ' + $('#rv-name').value.trim(),
-        from_name: 'Neat Nest & Nourish website',
+        _subject: 'New review (' + rating.value + '★) — ' + $('#rv-name').value.trim(),
         reviewer: $('#rv-name').value.trim(),
         rating: rating.value + ' out of 5',
         relationship: $('#rv-role').value.trim() || '—',
@@ -529,8 +539,8 @@
         })
         .catch(function (err) {
           busy(btn, false);
-          if (err.message === 'NOT_CONFIGURED') {
-            setStatus(status, 'This form is not connected yet. Please call or text ' + CONFIG.PHONE_DISPLAY + '.', 'is-err');
+          if (err.message === 'NOT_ACTIVATED') {
+            setStatus(status, 'We could not send that just now. Please call or text ' + CONFIG.PHONE_DISPLAY + ' and we will take care of you.', 'is-err');
           } else {
             setStatus(status, FALLBACK_MSG, 'is-err');
           }
