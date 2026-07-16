@@ -146,10 +146,37 @@ a{color:inherit}
 .btn-ghost{--btn-bg:transparent;--btn-fg:var(--ink);--btn-bd:var(--line-gold)}
 .btn-ghost:hover{--btn-bd:var(--gold-dark);--btn-bg:rgba(194,161,102,.08)}
 
-.section-dark .btn-ghost,.contact .btn-ghost{--btn-fg:var(--cream);--btn-bd:rgba(233,223,198,.4)}
-.section-dark .btn-ghost:hover,.contact .btn-ghost:hover{--btn-bd:var(--gold);--btn-bg:rgba(194,161,102,.14)}
-.section-dark .btn-primary,.contact .btn-primary{--btn-bg:var(--gold);--btn-fg:var(--forest-deep);--btn-bd:var(--gold)}
-.section-dark .btn-primary:hover,.contact .btn-primary:hover{--btn-bg:var(--gold-pale);--btn-bd:var(--gold-pale)}
+/* ── Buttons on dark grounds ───────────────────
+   The default .btn-primary is forest-on-cream. Drop it on a forest panel and
+   the button becomes forest-on-forest: the box vanishes and only the label
+   survives. .btn-ghost is worse — dark ink on dark ground, invisible.
+   EVERY dark container must be listed here. If you add a new dark section,
+   add it to this list or its buttons will disappear. (Bit us on .est-result,
+   reported 2026-07-16.)
+   ───────────────────────────────────────────── */
+.section-dark .btn-primary,
+.contact .btn-primary,
+.hero .btn-primary,
+.est-result .btn-primary,
+.site-footer .btn-primary{--btn-bg:var(--gold);--btn-fg:var(--forest-deep);--btn-bd:var(--gold)}
+
+.section-dark .btn-primary:hover,
+.contact .btn-primary:hover,
+.hero .btn-primary:hover,
+.est-result .btn-primary:hover,
+.site-footer .btn-primary:hover{--btn-bg:var(--gold-pale);--btn-bd:var(--gold-pale)}
+
+.section-dark .btn-ghost,
+.contact .btn-ghost,
+.hero .btn-ghost,
+.est-result .btn-ghost,
+.site-footer .btn-ghost{--btn-fg:var(--cream);--btn-bd:rgba(233,223,198,.42)}
+
+.section-dark .btn-ghost:hover,
+.contact .btn-ghost:hover,
+.hero .btn-ghost:hover,
+.est-result .btn-ghost:hover,
+.site-footer .btn-ghost:hover{--btn-bd:var(--gold);--btn-bg:rgba(194,161,102,.14)}
 
 .btn-sm{min-height:40px;padding:10px 18px;font-size:11px}
 .btn-lg{min-height:54px;padding:17px 34px}
@@ -308,10 +335,6 @@ a{color:inherit}
   line-height:1.75;
 }
 .hero-actions{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:30px}
-.hero .btn-primary{--btn-bg:var(--gold);--btn-fg:var(--forest-deep);--btn-bd:var(--gold)}
-.hero .btn-primary:hover{--btn-bg:var(--gold-pale);--btn-bd:var(--gold-pale)}
-.hero .btn-ghost{--btn-fg:var(--cream);--btn-bd:rgba(233,223,198,.42)}
-.hero .btn-ghost:hover{--btn-bd:var(--gold);--btn-bg:rgba(194,161,102,.14)}
 .hero-note{font-size:13px;color:var(--ivory-dim);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .hero-note a{color:var(--gold);text-underline-offset:3px}
 
