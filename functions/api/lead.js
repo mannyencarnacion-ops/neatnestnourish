@@ -167,8 +167,15 @@ export async function onRequestPost(context) {
 
 export async function onRequestGet(context) {
   var url = new URL(context.request.url);
-  if (url.searchParams.get('selftest') === '1') {
-    var env = context.env || {};
+  var env = context.env || {};
+
+  /* Self-test is GATED. It sends a REAL email on every hit, so on a public
+     domain an unauthenticated `?selftest=1` is an open inbox-spam and
+     Resend-quota faucet. It now requires ?selftest=<SELFTEST_TOKEN>, and if
+     SELFTEST_TOKEN is unset the route does not exist at all — fail closed.
+     Token lives in Cloudflare Pages > Settings > Variables and secrets. */
+  var probe = url.searchParams.get('selftest');
+  if (probe && env.SELFTEST_TOKEN && probe === env.SELFTEST_TOKEN) {
     if (!env.RESEND_API_KEY || !env.LEAD_TO || !env.LEAD_FROM) {
       return new Response('SELFTEST FAIL: missing RESEND_API_KEY / LEAD_TO / LEAD_FROM', { status: 200, headers: { 'Content-Type': 'text/plain' } });
     }
