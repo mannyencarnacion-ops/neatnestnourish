@@ -844,3 +844,137 @@ input[aria-invalid="true"],textarea[aria-invalid="true"]{border-color:#a8452f}
   body{background:#fff;color:#000}
   .est-result{background:#fff;color:#000;box-shadow:none;border:1px solid #ccc}
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Everything below was ported from the Shopify theme on 2026-08-08.
+   It was written 2026-08-01, applied ONLY to assets/nnn-clean-minimal.css,
+   and never landed in this file — so the Cloudflare build still carried the
+   broken mobile header, and it went live with the domain cutover.
+   Keep it LAST in the file: several rules win on source order, not specificity.
+   ═══════════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════════
+   MOBILE FIX — 2026-08-01
+   Append to the END of assets/nnn-clean-minimal.css (last rule wins).
+
+   Fixes, in order of severity:
+   1. Header row overflowed at <=560px: brand + "Request an Estimate" +
+      hamburger needed ~437px inside a 358px row. Flex refused to wrap, so
+      the hamburger landed at x=454 on a 390px screen — the mobile menu was
+      literally off-screen and unreachable, and the CTA label was sliced.
+      Page also scrolled sideways 95px.
+   2. Sticky header sat at 82-94% alpha with backdrop-blur that doesn't
+      composite reliably on mobile Safari — section headings ghosted
+      through the bar while scrolling. Now solid below 900px.
+   3. Hero logo + padding ate the entire first screen, pushing the headline
+      and both CTAs below the fold.
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root{
+  --phone-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.68 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.32 1.85.55 2.81.68A2 2 0 0 1 22 16.92z'/%3E%3C/svg%3E");
+}
+
+/* ── 0. Kill sideways scroll. `clip` (not `hidden`) — `hidden` on <html>
+      silently breaks position:sticky. ─────────────────────────────── */
+html{overflow-x:clip}
+body{overflow-x:clip}
+
+/* ── 1. Header: solid ground below 900px ────────────────────────────
+      Blur stays on desktop. On mobile it costs a compositing layer on
+      every scroll frame and never rendered correctly anyway. The
+      transparent-over-hero state (.is-clear) is intentional — untouched. */
+@media (max-width:900px){
+  .site-header{
+    background:var(--paper);
+    backdrop-filter:none;
+    -webkit-backdrop-filter:none;
+  }
+  .site-header.is-stuck{background:var(--paper)}
+  .site-header.is-clear{background:transparent}
+}
+
+/* ── 2. Header row that actually fits ───────────────────────────────
+      Below 600px the header carries: brand · call pill · hamburger.
+      "Request an Estimate" moves out of the bar — it already lives in the
+      hero (above the fold) and in the mobile menu. For a home cleaner the
+      tap-to-call is the higher-intent action on a phone anyway. */
+@media (max-width:600px){
+  .header-inner{gap:10px;flex-wrap:nowrap}
+
+  .brand{min-width:0;flex:0 1 auto;gap:9px}
+  .brand-mark{width:38px;height:38px;flex:0 0 38px}
+  .brand-text{min-width:0}
+  .brand-name{
+    font-size:15px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+
+  .header-cta{gap:8px;margin-left:auto;flex:0 0 auto}
+
+  /* Show the phone pill (was .hide-sm), retire the long CTA */
+  .header-cta .btn-ghost.hide-sm{
+    display:inline-flex;
+    min-height:44px;padding:0 13px;
+    font-size:10.5px;letter-spacing:.06em;white-space:nowrap;
+  }
+  .header-cta .btn-primary{display:none}
+
+  /* The hamburger must never shrink — this is what got squashed to 31px
+     and pushed off the viewport. */
+  .menu-toggle{
+    display:flex;
+    flex:0 0 44px;width:44px;height:44px;
+  }
+}
+
+/* Very narrow (iPhone SE, 320-390px): collapse the call pill to a circle
+   and tighten the hero further so the CTAs still land near the fold. */
+@media (max-width:390px){
+  .header-cta .btn-ghost.hide-sm{
+    width:44px;padding:0;font-size:0;justify-content:center;
+  }
+  /* Phone glyph as an SVG mask, not a font character — the unicode ✆ renders
+     as a blob in Cormorant and is missing on some Android builds. */
+  .header-cta .btn-ghost.hide-sm::after{
+    content:"";
+    width:17px;height:17px;
+    background:currentColor;
+    -webkit-mask:var(--phone-icon) center/contain no-repeat;
+            mask:var(--phone-icon) center/contain no-repeat;
+  }
+  .brand-name{font-size:14px}
+}
+
+/* ── 3. Hero: get the headline and the CTAs onto the first screen ──── */
+@media (max-width:600px){
+  .hero{
+    padding:calc(var(--header-h) + 34px) 0 56px;
+  }
+  .logo-hero{width:min(190px,46vw)}
+  .hero-art{margin-bottom:2px}
+  .hero-title{margin-bottom:18px}
+  .hero-lede{margin-bottom:26px;font-size:15px;line-height:1.7}
+  .hero-actions{margin-bottom:22px;gap:10px}
+  .hero-actions .btn{width:100%}          /* full-width, thumb-sized */
+  .hero-note{font-size:12.5px;line-height:1.6}
+
+  /* Blobs are decorative; at this size they only cost paint time */
+  .b3{display:none}
+}
+
+/* ── 4. Tap targets: nothing interactive under 44px ─────────────────── */
+@media (max-width:600px){
+  .btn-sm{min-height:44px}
+  .hero-note a,
+  .site-footer a{padding-block:2px}
+}
+
+/* ── 5. iPhone SE class (<=390px): tighten the hero once more so the
+      headline AND both buttons clear the fold. Must sit after rule 3 —
+      same specificity, last one wins. ──────────────────────────────── */
+@media (max-width:390px){
+  .hero{padding:calc(var(--header-h) + 20px) 0 44px}
+  .logo-hero{width:min(150px,42vw)}
+  .hero-title{margin-bottom:14px}
+  .hero-lede{margin-bottom:20px;font-size:14.5px}
+  .hero-actions{margin-bottom:18px}
+}
