@@ -9,27 +9,34 @@
   /* ==========================================================
      CONFIG
      ----------------------------------------------------------
-     FormSubmit — no account, no API key, no secrets in this file.
-     Leads go to contact@neatnestnourish.com (DJ's address on her own
-     domain; it is the Shopify store's account email as of 2026-06-25).
+     Leads POST to /api/lead — the site's OWN Cloudflare Pages Function,
+     which relays through Resend to contact@neatnestnourish.com.
 
-     ACTIVATION — read this before assuming the form works:
-     FormSubmit rejects every submission until the endpoint is activated,
-     and activation is only triggered BY THE FIRST REAL POST. Deploying is
-     not enough. The first submit causes FormSubmit to email
-     contact@neatnestnourish.com an activation link that must be clicked.
-     Until that happens the endpoint answers:
-         {"success":"false","message":"This form needs Activation."}
-     This exact trap silently ate ShopMora's own leads for two days
-     (2026-07-14 → 07-16). So NOT_ACTIVATED is handled explicitly below and
-     shows the visitor the phone number — it must never look like a success.
+     The path is RELATIVE on purpose. Same-origin means no CORS preflight and
+     it keeps working unchanged on neatnestnourish.pages.dev, on the preview
+     deploys, and on neatnestnourish.com once the domain is attached.
+
+     HISTORY — do not undo this: until 2026-08-08 this file posted to
+     https://formsubmit.co/ajax/contact@neatnestnourish.com. FormSubmit was
+     never activated by the client, so every submission this site ever took
+     was answered with {"success":"false","message":"This form needs
+     Activation."} and delivered nothing. Resend replaced it. Do not point
+     this back at FormSubmit.
+
+     The endpoint contract (functions/api/lead.js):
+       POST JSON, must include _form: 'estimate' | 'review'
+       200 {success:true}                 -> genuinely sent
+       400 {success:false, error:"..."}   -> validation, message is user-safe
+       424 {success:false, error:"..."}   -> upstream mail failed. NEVER 5xx:
+           Cloudflare's edge replaces 5xx bodies, which would hide the reason.
+     The function never fakes success, so `success===true` is trustworthy.
 
      DNS WARNING: contact@neatnestnourish.com lives on neatnestnourish.com.
      When the domain is cut over to Cloudflare, the MX records MUST be
      carried across or this mailbox dies and every lead vanishes.
      ========================================================== */
   var CONFIG = {
-    ENDPOINT: 'https://formsubmit.co/ajax/contact@neatnestnourish.com',
+    ENDPOINT: '/api/lead',
     PHONE_DISPLAY: '774·234·7307',
     PHONE_HREF: '+17742347307'
   };
@@ -221,24 +228,33 @@
     btn.textContent = labelWhenBusy;
   };
 
-  /* Posts to FormSubmit. Resolves true only on a genuine success. */
+  /* Posts to the Resend-backed /api/lead function.
+     Resolves true ONLY on a real 200 {success:true}. Any other outcome throws,
+     so the visitor is never shown a success screen for a lead that vanished. */
   var send = function (payload) {
-    payload._captcha = 'false';
-    payload._template = 'table';
     return fetch(CONFIG.ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify(payload)
     })
-      .then(function (r) { return r.json(); })
-      .then(function (data) {
-        // FormSubmit returns success as the STRING "true"/"false", not a boolean.
-        var ok = data && (data.success === true || data.success === 'true');
-        if (ok) return true;
-        var msg = (data && data.message) || 'SEND_FAILED';
-        if (/activat/i.test(msg)) throw new Error('NOT_ACTIVATED');
-        throw new Error(msg);
+      .then(function (r) {
+        return r.json()
+          .catch(function () { throw new Error('HTTP ' + r.status); })
+          .then(function (data) { return { status: r.status, data: data }; });
+      })
+      .then(function (res) {
+        if (res.status === 200 && res.data && res.data.success === true) return true;
+        throw new Error((res.data && res.data.error) || ('HTTP ' + res.status));
       });
+  };
+
+  /* Validation messages from the endpoint are already user-safe and specific
+     ("Please fill in: name, email."), so show those verbatim. Anything else is
+     infrastructure and gets the phone number instead of a status code. */
+  var friendlyError = function (err) {
+    var m = err && err.message;
+    if (m && /^Please |does not look right/.test(m)) return m;
+    return FALLBACK_MSG;
   };
 
   var FALLBACK_MSG = 'Something went wrong sending that. Please call or text ' + CONFIG.PHONE_DISPLAY + ' and we will take care of you.';
@@ -445,8 +461,7 @@
         setStatus(status, '');
 
         send({
-          _subject: 'New estimate request — ' + $('#ef-name').value.trim() + ' (' + answers.service.value + ')',
-          _autoresponse: 'Thank you for your interest in Neat Nest & Nourish. We have your estimate request and will reply personally, usually within one business day. For anything urgent, call or text 774-234-7307.',
+          _form: 'estimate',
           name: $('#ef-name').value.trim(),
           email: $('#ef-email').value.trim(),
           phone: $('#ef-phone').value.trim() || '—',
@@ -473,11 +488,7 @@
           })
           .catch(function (err) {
             busy(btn, false);
-            if (err.message === 'NOT_ACTIVATED') {
-              setStatus(status, 'We could not send that just now. Please call or text ' + CONFIG.PHONE_DISPLAY + ' and we will take care of you.', 'is-err');
-            } else {
-              setStatus(status, FALLBACK_MSG, 'is-err');
-            }
+            setStatus(status, friendlyError(err), 'is-err');
           });
       });
     }
@@ -521,12 +532,11 @@
       setStatus(status, '');
 
       send({
-        _subject: 'New review (' + rating.value + '★) — ' + $('#rv-name').value.trim(),
+        _form: 'review',
         reviewer: $('#rv-name').value.trim(),
         rating: rating.value + ' out of 5',
         relationship: $('#rv-role').value.trim() || '—',
-        review: $('#rv-body').value.trim(),
-        note_to_owner: 'This review was submitted from the website and is NOT published. Reply to approve, then add it to the Reviews section.'
+        review: $('#rv-body').value.trim()
       })
         .then(function () {
           revForm.hidden = true;
@@ -539,11 +549,7 @@
         })
         .catch(function (err) {
           busy(btn, false);
-          if (err.message === 'NOT_ACTIVATED') {
-            setStatus(status, 'We could not send that just now. Please call or text ' + CONFIG.PHONE_DISPLAY + ' and we will take care of you.', 'is-err');
-          } else {
-            setStatus(status, FALLBACK_MSG, 'is-err');
-          }
+          setStatus(status, friendlyError(err), 'is-err');
         });
     });
   }
