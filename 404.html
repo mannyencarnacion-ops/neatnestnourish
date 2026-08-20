@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, follow">
+<title>Page Not Found | Neat Nest &amp; Nourish</title>
+<meta name="description" content="That page could not be found. Return to Neat Nest &amp; Nourish for private home cleaning in Worcester County.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&amp;family=Montserrat:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#fdfbf5; --paper:#f7f4ec; --ivory:#f3efe2;
+  --forest:#1e2417; --ink:#181c12; --gold:#c2a166; --gold-dark:#96793f;
+  --line:#e4ddc9; --muted:#7b7767;
+  --font-display:"Cormorant Garamond",Georgia,serif;
+  --font-body:"Montserrat",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; background:var(--cream); color:var(--ink);
+  font-family:var(--font-body); font-weight:300; line-height:1.7;
+  display:flex; align-items:center; justify-content:center;
+  padding:40px 20px; -webkit-font-smoothing:antialiased;
+}
+.card{max-width:620px; text-align:center}
+.eyebrow{
+  font-size:12px; letter-spacing:.22em; text-transform:uppercase;
+  color:var(--gold-dark); font-weight:500; margin:0 0 18px;
+}
+h1{
+  font-family:var(--font-display); font-weight:400;
+  font-size:clamp(38px,8vw,62px); line-height:1.05;
+  margin:0 0 18px; color:var(--forest);
+}
+p{margin:0 auto 30px; max-width:44ch; color:var(--muted); font-size:16px}
+.rule{width:64px; height:1px; background:var(--line); margin:0 auto 30px}
+.actions{display:flex; gap:14px; flex-wrap:wrap; justify-content:center}
+.btn{
+  display:inline-flex; align-items:center; justify-content:center;
+  min-height:52px; padding:0 30px; border-radius:10px;
+  font-family:var(--font-body); font-size:14px; font-weight:500;
+  letter-spacing:.08em; text-transform:uppercase; text-decoration:none;
+  transition:transform .2s cubic-bezier(.19,1,.22,1), background .2s, border-color .2s;
+}
+.btn-solid{background:var(--forest); color:var(--paper); border:1px solid var(--forest)}
+.btn-solid:hover{background:var(--ink); transform:translateY(-2px)}
+.btn-ghost{background:transparent; color:var(--forest); border:1px solid var(--line)}
+.btn-ghost:hover{border-color:var(--gold); transform:translateY(-2px)}
+.btn:focus-visible{outline:3px solid var(--gold); outline-offset:3px}
+@media (prefers-reduced-motion:reduce){.btn{transition:none}.btn:hover{transform:none}}
+</style>
+</head>
+<body>
+<main class="card">
+  <p class="eyebrow">Error 404</p>
+  <h1>This page has been tidied away</h1>
+  <div class="rule"></div>
+  <p>The page you were looking for is not here. It may have moved, or the link may have been mistyped.</p>
+  <div class="actions">
+    <a class="btn btn-solid" href="/">Return home</a>
+    <a class="btn btn-ghost" href="/#contact">Request a quote</a>
+  </div>
+</main>
+</body>
+</html>
